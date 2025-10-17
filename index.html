@@ -3,197 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown to HTML Converter</title>
+    <title>Markdown Editor & Viewer</title>
     <!-- Bootstrap 5 CSS from CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Custom styles for a professional look */
         body {
-            padding-top: 20px;
             background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .container {
-            max-width: 960px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            background-color: #ffffff;
         }
-        #markdown-input {
-            min-height: 300px;
-            font-family: 'Courier New', Courier, monospace;
+        .nav-tabs .nav-link {
+            border: none;
+            color: #495057;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+        #markdown-source, #markdown-output {
+            min-height: 400px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 8px 8px;
+            overflow-y: auto; /* For scrollable content if needed */
+        }
+        #markdown-source {
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            word-wrap: break-word; /* Break long words */
+            background-color: #e9ecef;
+            color: #212529;
         }
         #markdown-output {
-            margin-top: 30px;
-            padding: 20px;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: #212529;
         }
-        pre {
-            background-color: #e9ecef !important;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
+        .tab-content {
+            border-top: none;
         }
-        code {
-            font-family: 'Courier New', Courier, monospace;
+        h1 {
+            color: #343a40;
+            text-align: center;
+            margin-bottom: 30px;
         }
         .loading-overlay {
+            display: none; /* Hidden by default */
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 10;
             justify-content: center;
             align-items: center;
-            z-index: 10;
-            border-radius: 8px;
+            border-radius: 8px; /* Match parent container */
         }
-        .error-message {
-            color: #dc3545;
-            font-weight: bold;
+        .loading-overlay.show {
+            display: flex;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <header class="text-center mb-5">
-            <h1 class="display-4">Markdown to HTML Converter</h1>
-            <p class="lead">Convert your Markdown content to styled HTML using marked.js and Bootstrap.</p>
-        </header>
+        <h1 class="mt-4 mb-4">Markdown Live Preview</h1>
 
-        <main>
-            <section class="row">
-                <div class="col-md-6 mb-4 mb-md-0">
-                    <h2 class="h4 mb-3">Input Markdown</h2>
-                    <div class="position-relative">
-                        <textarea id="markdown-input" class="form-control" placeholder="Paste your Markdown here..."></textarea>
-                        <div id="loading-overlay" class="loading-overlay d-none">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <h2 class="h4 mb-3">Rendered HTML</h2>
-                    <div id="markdown-output">
-                        <p class="text-muted">HTML output will appear here.</p>
-                    </div>
-                </div>
-            </section>
-        </main>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="markdown-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="preview-tab" data-bs-toggle="tab" data-bs-target="#markdown-output-tab" type="button" role="tab" aria-controls="markdown-output-tab" aria-selected="true">Preview</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="source-tab" data-bs-toggle="tab" data-bs-target="#markdown-source-tab" type="button" role="tab" aria-controls="markdown-source-tab" aria-selected="false">Source</button>
+            </li>
+        </ul>
 
-        <footer class="text-center mt-5">
-            <p>&copy; 2023 Markdown Converter. Powered by marked.js and Bootstrap.</p>
-        </footer>
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Rendered HTML View -->
+            <div class="tab-pane fade show active" id="markdown-output-tab" role="tabpanel" aria-labelledby="preview-tab">
+                <div id="markdown-output" class="position-relative">
+                    <div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
+                    <!-- Rendered Markdown will appear here -->
+                </div>
+            </div>
+
+            <!-- Original Markdown Source View -->
+            <div class="tab-pane fade" id="markdown-source-tab" role="tabpanel" aria-labelledby="source-tab">
+                <div id="markdown-source" class="position-relative">
+                    <div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
+                    <!-- Original Markdown will appear here -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- marked.js from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- highlight.js from CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Bootstrap 5 JavaScript Bundle from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Wait for the DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            const markdownInput = document.getElementById('markdown-input');
-            const markdownOutput = document.getElementById('markdown-output');
-            const loadingOverlay = document.getElementById('loading-overlay');
+        // --- Configuration ---
+        const initialMarkdown = `
+# Welcome to the Markdown Editor!
 
-            // Initial Markdown content from the attachment (as a data URI)
-            // This is a placeholder, in a real app, you might fetch this from a file or API.
-            const initialMarkdown = `
-# Welcome to the Markdown Converter!
-
-This is a simple single-page application that converts Markdown to HTML.
+This is a **live preview** of your Markdown.
 
 ## Features:
-*   Uses \`marked.js\` for Markdown parsing.
-*   Styles with \`Bootstrap 5\`.
-*   Highlights code blocks with \`highlight.js\`.
-
-### Example Code Block:
-
-\`\`\`javascript
-function greet(name) {
-    console.log('Hello, ' + name + '!');
-}
-greet('World');
-\`\`\`
+*   **Bold text**
+*   *Italic text*
+*   \`Inline code\`
+*   \`\`\`
+    Code blocks
+    with syntax highlighting
+    \`\`\`
+*   [Links](https://www.example.com)
+*   > Blockquotes
 
 ### Lists:
+1.  Ordered list item 1
+2.  Ordered list item 2
 
-*   Item 1
-*   Item 2
-    *   Sub-item A
-    *   Sub-item B
-
-1.  Ordered Item 1
-2.  Ordered Item 2
-
-### Links and Images:
-
-[Visit Google](https://www.google.com)
-
-![Bootstrap Logo](https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo-black.svg)
-
-### Blockquotes:
-
-> This is a blockquote. It's useful for quoting text from another source.
-
-### Tables:
-
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Row 1 C1 | Row 1 C2 | Row 1 C3 |
-| Row 2 C1 | Row 2 C2 | Row 2 C3 |
-
-### Emphasis:
-
-**Bold text** and *italic text*.
+*   Unordered list item A
+*   Unordered list item B
 
 ---
 
-This is a horizontal rule.
-            `;
+*This is a horizontal rule.*
+`;
 
-            // Function to render Markdown
-            const renderMarkdown = () => {
-                const markdownText = markdownInput.value;
-                if (!markdownText.trim()) {
-                    markdownOutput.innerHTML = '<p class="text-muted">Enter some Markdown to see the output.</p>';
-                    return;
+        // --- DOM Elements ---
+        const markdownSourceDiv = document.getElementById('markdown-source');
+        const markdownOutputDiv = document.getElementById('markdown-output');
+        const sourceTabButton = document.getElementById('source-tab');
+        const previewTabButton = document.getElementById('preview-tab');
+        const sourceLoadingOverlay = markdownSourceDiv.querySelector('.loading-overlay');
+        const outputLoadingOverlay = markdownOutputDiv.querySelector('.loading-overlay');
+
+        // --- Markdown Rendering ---
+        // Using a simple, lightweight Markdown parser.
+        // For production, consider a more robust library like 'marked' or 'showdown'.
+        // This is a basic implementation for demonstration purposes.
+        function simpleMarkdownParser(markdown) {
+            let html = markdown;
+
+            // Basic replacements
+            html = html.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
+            html = html.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
+            html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+
+            html = html.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>');
+            html = html.replace(/\*(.*)\*/gim, '<em>$1</em>');
+            html = html.replace(/`(.*?)`/gim, '<code>$1</code>');
+
+            // Basic unordered lists
+            html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/^(<li>.*<\/li>)$/gim, '<ul>$1</ul>'); // Wrap consecutive li
+
+            // Basic ordered lists
+            html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/^(<li>.*<\/li>)$/gim, '<ol>$1</ol>'); // Wrap consecutive li
+
+            // Horizontal rule
+            html = html.replace(/^---$/gim, '<hr>');
+
+            // Links
+            html = html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>');
+
+            // Paragraphs (ensure newlines are handled)
+            html = html.replace(/^(?!<h[1-6]>)(?!<ul|<ol|<li|<blockquote|<hr)(.+)$/gim, '<p>$1</p>');
+
+            // Clean up empty tags and extra newlines
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<ul><\/ul>/g, '');
+            html = html.replace(/<ol><\/ol>/g, '');
+            html = html.replace(/<br\s*\/>/gi, ''); // Remove potential extra breaks
+
+            // Handle code blocks (basic, no syntax highlighting)
+            html = html.replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>');
+
+            // Re-process lists to handle multiple items correctly
+            html = html.replace(/<ul>((?:<li>.*<\/li>)+)<\/ul>/g, (match, p1) => {
+                return `<ul>${p1}</ul>`;
+            });
+            html = html.replace(/<ol>((?:<li>.*<\/li>)+)<\/ol>/g, (match, p1) => {
+                return `<ol>${p1}</ol>`;
+            });
+
+            // Ensure paragraphs are not nested within other block elements
+            html = html.split('\n').map(line => {
+                if (line.trim() === '') return '';
+                if (line.startsWith('<p>') || line.startsWith('<h') || line.startsWith('<ul') || line.startsWith('<ol') || line.startsWith('<blockquote') || line.startsWith('<hr')) {
+                    return line;
                 }
+                return `<p>${line}</p>`;
+            }).join('');
 
-                // Show loading overlay
-                loadingOverlay.classList.remove('d-none');
-                markdownOutput.innerHTML = ''; // Clear previous output
+            // Final cleanup for paragraphs and newlines
+            html = html.replace(/<p>\s*<\/p>/g, '');
+            html = html.replace(/<p>(<h[1-6]>.*<\/h[1-6]>)<\/p>/g, '$1'); // Remove p around headings
+            html = html.replace(/<p>(<ul.*>.*<\/ul>)<\/p>/g, '$1'); // Remove p around lists
+            html = html.replace(/<p>(<ol.*>.*<\/ol>)<\/p>/g, '$1'); // Remove p around lists
+            html = html.replace(/<p>(<blockquote.*>.*<\/blockquote>)<\/p>/g, '$1'); // Remove p around blockquotes
+            html = html.replace(/<p>(<hr.*>.*<\/hr>)<\/p>/g, '$1'); // Remove p around hr
 
+            return html;
+        }
+
+
+        // --- Synchronization and Rendering Logic ---
+
+        // Function to update both views
+        function updateViews(markdownContent) {
+            // Update source view
+            markdownSourceDiv.innerHTML = ''; // Clear previous content
+            sourceLoadingOverlay.classList.add('show'); // Show loading
+            setTimeout(() => { // Simulate async operation
+                markdownSourceDiv.textContent = markdownContent; // Use textContent to display raw markdown
+                sourceLoadingOverlay.classList.remove('show'); // Hide loading
+            }, 50); // Small delay for visual feedback
+
+            // Update output view
+            markdownOutputDiv.innerHTML = ''; // Clear previous content
+            outputLoadingOverlay.classList.add('show'); // Show loading
+            setTimeout(() => { // Simulate async operation
                 try {
-                    // Use marked.js to convert Markdown to HTML
-                    const html = marked.parse(markdownText);
-                    markdownOutput.innerHTML = html;
-
-                    // Apply highlight.js to code blocks
-                    markdownOutput.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightElement(block);
-                    });
+                    const renderedHtml = simpleMarkdownParser(markdownContent);
+                    markdownOutputDiv.innerHTML = renderedHtml;
                 } catch (error) {
                     console.error("Error rendering Markdown:", error);
-                    markdownOutput.innerHTML = '<p class="error-message">An error occurred while rendering Markdown. Please check your input.</p>';
+                    markdownOutputDiv.innerHTML = '<p class="text-danger">Error rendering Markdown. Please check the source.</p>';
                 } finally {
-                    // Hide loading overlay
-                    loadingOverlay.classList.add('d-none');
+                    outputLoadingOverlay.classList.remove('show'); // Hide loading
                 }
-            };
+            }, 100); // Slightly longer delay for rendering
+        }
 
-            // Set initial Markdown content
-            markdownInput.value = initialMarkdown;
-            renderMarkdown(); // Render initial content on page load
+        // --- Event Listeners ---
 
-            // Add event listener for input changes
-            markdownInput.addEventListener('input', renderMarkdown);
+        // Listen for changes in the source textarea (if we were using one)
+        // For this static example, we'll just load the initial content.
+
+        // Initialize with the initial markdown content
+        document.addEventListener('DOMContentLoaded', () => {
+            updateViews(initialMarkdown.trim());
         });
+
+        // --- Tab Switching Logic ---
+        // Bootstrap's tab functionality handles the visual switching.
+        // We just need to ensure content is loaded/updated when tabs are shown.
+
+        // This is implicitly handled by Bootstrap's data-bs-toggle and data-bs-target attributes.
+        // The content is loaded once and then shown/hidden.
+        // If we had dynamic content loading or editing, we'd use Bootstrap's tab events:
+        // const tabTriggerList = document.querySelectorAll('#markdown-tabs button');
+        // const tabList = [...tabTriggerList].map(tabTriggerEl => new bootstrap.Tab(tabTriggerEl));
+        //
+        // tabTriggerList.forEach(tabTriggerEl => {
+        //     tabTriggerEl.addEventListener('shown.bs.tab', event => {
+        //         // event.target is the tab that was activated
+        //         // event.relatedTarget is the previously active tab
+        //         console.log(`Tab "${event.target.id}" shown.`);
+        //         // If you needed to re-render or fetch data on tab show, you'd do it here.
+        //     });
+        // });
+
     </script>
 </body>
 </html>
