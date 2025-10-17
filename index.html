@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to HTML Converter</title>
+    <!-- Bootstrap 5 CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 960px;
+        }
+        #markdown-input {
+            min-height: 300px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #markdown-output {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        pre {
+            background-color: #e9ecef !important;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 8px;
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="text-center mb-5">
+            <h1 class="display-4">Markdown to HTML Converter</h1>
+            <p class="lead">Convert your Markdown content to styled HTML using marked.js and Bootstrap.</p>
+        </header>
+
+        <main>
+            <section class="row">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <h2 class="h4 mb-3">Input Markdown</h2>
+                    <div class="position-relative">
+                        <textarea id="markdown-input" class="form-control" placeholder="Paste your Markdown here..."></textarea>
+                        <div id="loading-overlay" class="loading-overlay d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2 class="h4 mb-3">Rendered HTML</h2>
+                    <div id="markdown-output">
+                        <p class="text-muted">HTML output will appear here.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-5">
+            <p>&copy; 2023 Markdown Converter. Powered by marked.js and Bootstrap.</p>
+        </footer>
+    </div>
+
+    <!-- marked.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- highlight.js from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <script>
+        // Wait for the DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const markdownInput = document.getElementById('markdown-input');
+            const markdownOutput = document.getElementById('markdown-output');
+            const loadingOverlay = document.getElementById('loading-overlay');
+
+            // Initial Markdown content from the attachment (as a data URI)
+            // This is a placeholder, in a real app, you might fetch this from a file or API.
+            const initialMarkdown = `
+# Welcome to the Markdown Converter!
+
+This is a simple single-page application that converts Markdown to HTML.
+
+## Features:
+*   Uses \`marked.js\` for Markdown parsing.
+*   Styles with \`Bootstrap 5\`.
+*   Highlights code blocks with \`highlight.js\`.
+
+### Example Code Block:
+
+\`\`\`javascript
+function greet(name) {
+    console.log('Hello, ' + name + '!');
+}
+greet('World');
+\`\`\`
+
+### Lists:
+
+*   Item 1
+*   Item 2
+    *   Sub-item A
+    *   Sub-item B
+
+1.  Ordered Item 1
+2.  Ordered Item 2
+
+### Links and Images:
+
+[Visit Google](https://www.google.com)
+
+![Bootstrap Logo](https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo-black.svg)
+
+### Blockquotes:
+
+> This is a blockquote. It's useful for quoting text from another source.
+
+### Tables:
+
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| Row 1 C1 | Row 1 C2 | Row 1 C3 |
+| Row 2 C1 | Row 2 C2 | Row 2 C3 |
+
+### Emphasis:
+
+**Bold text** and *italic text*.
+
+---
+
+This is a horizontal rule.
+            `;
+
+            // Function to render Markdown
+            const renderMarkdown = () => {
+                const markdownText = markdownInput.value;
+                if (!markdownText.trim()) {
+                    markdownOutput.innerHTML = '<p class="text-muted">Enter some Markdown to see the output.</p>';
+                    return;
+                }
+
+                // Show loading overlay
+                loadingOverlay.classList.remove('d-none');
+                markdownOutput.innerHTML = ''; // Clear previous output
+
+                try {
+                    // Use marked.js to convert Markdown to HTML
+                    const html = marked.parse(markdownText);
+                    markdownOutput.innerHTML = html;
+
+                    // Apply highlight.js to code blocks
+                    markdownOutput.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                } catch (error) {
+                    console.error("Error rendering Markdown:", error);
+                    markdownOutput.innerHTML = '<p class="error-message">An error occurred while rendering Markdown. Please check your input.</p>';
+                } finally {
+                    // Hide loading overlay
+                    loadingOverlay.classList.add('d-none');
+                }
+            };
+
+            // Set initial Markdown content
+            markdownInput.value = initialMarkdown;
+            renderMarkdown(); // Render initial content on page load
+
+            // Add event listener for input changes
+            markdownInput.addEventListener('input', renderMarkdown);
+        });
+    </script>
+</body>
+</html>
